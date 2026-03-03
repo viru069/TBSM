@@ -586,6 +586,7 @@ print(generate_text("Shall I compare thee", 5, max_sequence_len))
 
 Aim: - Music Generation: Implement a Long Short-Term Memory (LSTM) network using TensorFlow 2 for music generation. Train the LSTM model on a dataset of music sequences and generate new musical compositions.
 Code: -
+https://bitmidi.com/america_-_sister_golden_hair-mid?utm_source=chatgpt.com#google_vignette
 !pip install tensorflow music21 numpy
 import glob
 from music21 import converter
@@ -725,4 +726,5 @@ midi_stream.write('midi', fp='generated_music.mid')
 	offset += 0.5
 midi_stream = stream.Stream(output_notes)
 midi_stream.write('midi', fp='generated_music.mid')
+
 
