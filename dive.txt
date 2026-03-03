@@ -595,100 +595,134 @@ from music21 import chord
 import numpy as np
 import tensorflow as tf
 from music21 import stream
-midi_files = glob.glob(r"C:\Users\ckt\Desktop\Music\America_-_Sister_Golden_Hair.mid")
- 
+
+midi_files = glob.glob(r"C:\Users\YASH GHADGE\Downloads\America_-_Sister_Golden_Hair.mid")
+
 notes = []
+
 for file in midi_files:
-	midi = converter.parse(file)
-	parts = instrument.partitionByInstrument(midi)
-	if parts:  # instrument parts exist
-    	elements = parts.parts[0].recurse()
-	else:
-    	elements = midi.flat.notes
-	for element in elements:
-    	if isinstance(element, note.Note):
+    midi = converter.parse(file)
+    parts = instrument.partitionByInstrument(midi)
+
+    if parts:  # instrument parts exist
+        elements = parts.parts[0].recurse()
+    else:
+        elements = midi.flat.notes
+
+    for element in elements:
+        if isinstance(element, note.Note):
             notes.append(str(element.pitch))
-    	elif isinstance(element, chord.Chord):
+        elif isinstance(element, chord.Chord):
             notes.append('.'.join(str(n) for n in element.normalOrder))
+
 print("Total notes:", len(notes))
- 
+
 sequence_length = 100
+
 # Unique notes
 pitchnames = sorted(set(notes))
 n_vocab = len(pitchnames)
+
 note_to_int = {note: number for number, note in enumerate(pitchnames)}
+
 network_input = []
 network_output = []
+
 for i in range(len(notes) - sequence_length):
-	seq_in = notes[i:i + sequence_length]
-	seq_out = notes[i + sequence_length]
+    seq_in = notes[i:i + sequence_length]
+    seq_out = notes[i + sequence_length]
+
     network_input.append([note_to_int[n] for n in seq_in])
-	network_output.append(note_to_int[seq_out])
+    network_output.append(note_to_int[seq_out])
+
 n_patterns = len(network_input)
 print("Patterns:", n_patterns)
+
 # Reshape & normalize
 X = np.reshape(network_input, (n_patterns, sequence_length, 1))
 X = X / float(n_vocab)
+
 y = tf.keras.utils.to_categorical(network_output)
- 
+
 model = tf.keras.Sequential([
-	tf.keras.layers.LSTM(512, input_shape=(X.shape[1], X.shape[2]), return_sequences=True),
-	tf.keras.layers.Dropout(0.3),
-	tf.keras.layers.LSTM(512),
-	tf.keras.layers.Dense(256, activation='relu'),
-	tf.keras.layers.Dropout(0.3),
-	tf.keras.layers.Dense(n_vocab, activation='softmax')
+    tf.keras.layers.LSTM(512, input_shape=(X.shape[1], X.shape[2]), return_sequences=True),
+    tf.keras.layers.Dropout(0.3),
+    tf.keras.layers.LSTM(512),
+    tf.keras.layers.Dense(256, activation='relu'),
+    tf.keras.layers.Dropout(0.3),
+    tf.keras.layers.Dense(n_vocab, activation='softmax')
 ])
+
 model.compile(
     loss='categorical_crossentropy',
-	optimizer='adam'
+    optimizer='adam'
 )
+
 model.summary()
- 
+
 checkpoint = tf.keras.callbacks.ModelCheckpoint(
-	"music_lstm.h5",
-	monitor='loss',
-	save_best_only=True
+    "music_lstm.h5",
+    monitor='loss',
+    save_best_only=True
 )
+
 model.fit(
-	X, y,
-	epochs=50,
-	batch_size=64,
-	callbacks=[checkpoint]
+    X, y,
+    epochs=50,
+    batch_size=64,
+    callbacks=[checkpoint]
 )
- 
+
 model.load_weights("music_lstm.h5")
-start = np.random.randint(0, len(network_input)-1)
+
+start = np.random.randint(0, len(network_input) - 1)
 pattern = network_input[start]
+
 int_to_note = {number: note for number, note in enumerate(pitchnames)}
+
 generated_notes = []
+
 for i in range(500):
-	input_seq = np.reshape(pattern, (1, len(pattern), 1))
-	input_seq = input_seq / float(n_vocab)
-	prediction = model.predict(input_seq, verbose=0)
-	index = np.argmax(prediction)
-	result = int_to_note[index]
+    input_seq = np.reshape(pattern, (1, len(pattern), 1))
+    input_seq = input_seq / float(n_vocab)
+
+    prediction = model.predict(input_seq, verbose=0)
+    index = np.argmax(prediction)
+    result = int_to_note[index]
+
     generated_notes.append(result)
-	pattern.append(index)
-	pattern = pattern[1:]
+
+    pattern.append(index)
+    pattern = pattern[1:]
+
 output_notes = []
 offset = 0
+
 for pattern in generated_notes:
-	if '.' in pattern:
-    	notes_in_chord = pattern.split('.')
-    	chord_notes = []
-    	for n in notes_in_chord:
-        	new_note = note.Note(int(n))
+    if '.' in pattern:
+        notes_in_chord = pattern.split('.')
+        chord_notes = []
+
+        for n in notes_in_chord:
+            new_note = note.Note(int(n))
             new_note.storedInstrument = instrument.Piano()
-        	chord_notes.append(new_note)
-    	new_chord = chord.Chord(chord_notes)
-    	new_chord.offset = offset
-   	 output_notes.append(new_chord)
-	else:
-    	new_note = note.Note(pattern)
-    	new_note.offset = offset
-    	new_note.storedInstrument = instrument.Piano()
-  	  output_notes.append(new_note)
+            chord_notes.append(new_note)
+
+        new_chord = chord.Chord(chord_notes)
+        new_chord.offset = offset
+        output_notes.append(new_chord)
+
+    else:
+        new_note = note.Note(pattern)
+        new_note.offset = offset
+        new_note.storedInstrument = instrument.Piano()
+        output_notes.append(new_note)
+
+    offset += 0.5
+
+midi_stream = stream.Stream(output_notes)
+midi_stream.write('midi', fp='generated_music.mid')
 	offset += 0.5
 midi_stream = stream.Stream(output_notes)
 midi_stream.write('midi', fp='generated_music.mid')
+
