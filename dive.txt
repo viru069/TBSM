@@ -159,6 +159,9 @@ plt.imshow(mask.reshape(28,28), cmap='gray')
 plt.axis('off')
 plt.show()
 
+
+
+
 Aim: - Implement the concept of Deep-belief Neural Network
 Code: -
 # Install (run this in terminal or notebook cell, NOT inside the script)
@@ -237,6 +240,9 @@ for i, comp in enumerate(rbm1.components_[:16]):
 plt.suptitle("RBM Layer-1 Learned Features")
 plt.show()
 
+
+
+
 Aim: - Write Python scripts to implement basic operations and TensorFlow 2 tensors
 !pip install tensorflow
 import tensorflow as tf
@@ -303,6 +309,10 @@ print("Variable:\n", var)
  # Assigning new values
 var.assign([[5.0, 6.0]])
 print("\nAfter assign():\n", var)
+
+
+
+
 Aim: - Implement Convolution Neural Network.
 Code: -
 import tensorflow as tf
@@ -346,7 +356,7 @@ model = models.Sequential([
     layers.Dense(10, activation='softmax')
 ])
  
-  model.summary()
+model.summary()
  
 model.compile(
     optimizer='adam',
@@ -392,6 +402,8 @@ plt.axis('off')
 pred = model.predict(img.reshape(1,32,32,3))
 print("Predicted class:", np.argmax(pred))
 print("Actual class:", y_test[index])
+
+
 
 Aim : - Implement a Generative Adeversarial Network (GAN) architechture using Tensorflow 2. Train the GAN model on a dataset such as MNIST or CIFAR-10 for image generation tasks
  
@@ -569,6 +581,9 @@ def generate_text(seed_text, next_words, max_sequence_len):
 # Example text generation
 print(generate_text("Shall I compare thee", 5, max_sequence_len))
 
+
+
+
 Aim: - Music Generation: Implement a Long Short-Term Memory (LSTM) network using TensorFlow 2 for music generation. Train the LSTM model on a dataset of music sequences and generate new musical compositions.
 Code: -
 !pip install tensorflow music21 numpy
@@ -677,4 +692,3 @@ for pattern in generated_notes:
 	offset += 0.5
 midi_stream = stream.Stream(output_notes)
 midi_stream.write('midi', fp='generated_music.mid')
-
