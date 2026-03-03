@@ -27,6 +27,8 @@ Hello MapReduce
 
 !python wordcount.py example.txt
 
+
+
 Aim : - Multi,Sort,Index
 from collections import defaultdict
 A=[
@@ -296,6 +298,7 @@ print("\nFinal Centroids:")
 print(centroids)
 
 db.FirstTab.deleteMany({Name:{$in:["A","B"]}})
+
 
 
 
