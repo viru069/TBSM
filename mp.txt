@@ -1,0 +1,298 @@
+Aim: - MapReduce wordcount 
+pip install mrjob
+
+%%writefile wordcount.py
+from mrjob.job import MRJob
+import re
+
+WORD_REGEXP = re.compile(r"[a-zA-Z]+")
+
+class MRWordCount(MRJob):
+
+    def mapper(self, _, line):
+        for word in WORD_REGEXP.findall(line):
+            yield word.lower(), 1
+
+    def reducer(self, word, counts):
+        yield word, sum(counts)
+
+if __name__ == "__main__":
+    MRWordCount.run()
+
+%%writefile example.txt
+Hello world
+Hello Google Colab
+MapReduce word count example
+Hello MapReduce
+
+!python wordcount.py example.txt
+
+Aim : - Multi,Sort,Index
+from collections import defaultdict
+A=[
+    [1,2,3],
+    [4,5,6]
+    ]
+B=[[7,8],
+   [9,10],
+   [11,12]
+   ]
+m,n=len(A),len(A[0])
+n2,p=len(B),len(B[0])
+
+assert n==n2,"Matrix Multiplication not possible"
+
+mapped = []
+
+for i in range(m):
+    for j in range(n):
+        for k in range(p):
+            mapped.append(((i, k), ('A', j, A[i][j])))
+
+for j in range(n):
+    for k in range(p):
+        for i in range(m):
+            mapped.append(((i, k), ('B', j, B[j][k])))
+
+shuffle = defaultdict(list)
+for key, value in mapped:
+    shuffle[key].append(value)
+
+result = {}
+
+for key in shuffle:
+    values = shuffle[key]
+    A_vals = {}
+    B_vals = {}
+
+    for tag, j, val in values:
+        if tag == 'A':
+            A_vals[j] = val
+        else:
+            B_vals[j] = val
+
+    total = 0
+    for j in A_vals:
+        if j in B_vals:
+            total += A_vals[j] * B_vals[j]
+
+    result[key] = total
+    result_matrix=[[0 for _ in range(p)] for _ in range(m)]
+    for (i, k), val in result.items():
+        result_matrix[i][k] = val
+        
+print("Result Matrix:")
+for row in result_matrix:
+    print(row)
+
+from collections import defaultdict
+
+data = [5, 1, 9, 3, 7, 2, 8]
+
+mapped = []
+for num in data:
+    mapped.append((num, num))
+
+shuffle = defaultdict(list)
+for key, value in mapped:
+    shuffle[key].append(value)
+
+sorted_result = []
+for key in sorted(shuffle.keys()):
+    sorted_result.extend(shuffle[key])
+
+print("Sorted Output:")
+print(sorted_result)
+
+from collections import defaultdict
+
+documents = {
+    "doc1": "big data analytics",
+    "doc2": "data mining and big data",
+    "doc3": "analytics and mining"
+}
+
+mapped = []
+
+for doc_id, text in documents.items():
+    words = text.split()
+    for word in words:
+        mapped.append((word.lower(), doc_id))
+
+shuffle = defaultdict(list)
+for word, doc_id in mapped:
+    shuffle[word].append(doc_id)
+
+inverted_index = {}
+
+for word, doc_ids in shuffle.items():
+    inverted_index[word] = list(set(doc_ids))
+
+print("Inverted Index:")
+for word, docs in inverted_index.items():
+    print(f"{word} -> {docs}")
+
+
+
+Aim: - Implement Page rank algorithm using Map Reduce.
+Code: - 
+from collections import defaultdict
+
+def pagerank_mapreduce(graph, damping=0.85, max_iterations=100, tolerance=1e-6):
+    num_nodes = len(graph)
+    
+    
+    ranks = {node: 1 / num_nodes for node in graph}
+    
+    for iteration in range(max_iterations):
+        
+      
+        contributions = []
+        
+        for node in graph:
+            if len(graph[node]) == 0:
+                # Dangling node distributes rank to all nodes
+                for target in graph:
+                    contributions.append((target, ranks[node] / num_nodes))
+            else:
+                share = ranks[node] / len(graph[node])
+                for target in graph[node]:
+                    contributions.append((target, share))
+        
+        
+        grouped = defaultdict(list)
+        for node, value in contributions:
+            grouped[node].append(value)
+        
+        
+        new_ranks = {}
+        for node in graph:
+            rank_sum = sum(grouped[node])
+            new_ranks[node] = (1 - damping) / num_nodes + damping * rank_sum
+        
+        
+        diff = sum(abs(new_ranks[node] - ranks[node]) for node in graph)
+        ranks = new_ranks
+        
+        if diff < tolerance:
+            print(f"Converged after {iteration + 1} iterations.")
+            break
+    
+    return ranks
+
+graph = {
+    'A': ['B', 'C'],
+    'B': ['C'],
+    'C': ['A'],
+    'D': ['C']
+}
+
+ranks = pagerank_mapreduce(graph)
+
+print("\nFinal PageRank Scores:")
+for node, rank in ranks.items():
+    print(f"{node}: {rank:.4f}")
+
+
+
+Aim: - Installation of spark 
+Code:- 
+!java -version
+!apt-get install openjdk-17-jdk-headless -qq > /dev/null
+
+#Set Java Path:
+import os
+os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-17-openjdk-amd64"
+
+!wget https://archive.apache.org/dist/spark/spark-3.5.0/spark-3.5.0-bin-hadoop3.tgz
+!tar -xvf spark-3.5.0-bin-hadoop3.tgz
+
+#Set up envirnoment variable:
+os.environ["SPARK_HOME"] = "/content/spark-3.5.0-bin-hadoop3"
+os.environ["PATH"] += ":/content/spark-3.5.0-bin-hadoop3/bin"
+
+!pip uninstall -y pyspark
+!pip install pyspark==3.5.0
+
+from pyspark.sql import SparkSession
+spark = SparkSession.builder \
+    .appName("ColabSpark") \
+    .master("local[*]") \
+    .getOrCreate()
+spark
+
+
+Aim: -Implement clustering algorithm using map reduce.
+Code: -
+import numpy as np
+from collections import defaultdict
+
+# Generate Sample Dataset
+
+np.random.seed(42)
+data = np.vstack((
+    np.random.randn(100, 2) + [2, 2],
+    np.random.randn(100, 2) + [8, 8]))
+
+K = 2
+max_iters = 10
+epsilon = 0.001
+
+# Initialize Centroids
+
+centroids = data[np.random.choice(len(data), K, replace=False)]
+
+# Distance Function
+
+def euclidean_distance(a, b):
+    return np.linalg.norm(a - b)
+
+# MAP FUNCTION
+
+def mapper(data_chunk, centroids):
+    mapped = []
+    for point in data_chunk:
+        distances = [euclidean_distance(point, c) for c in centroids]
+        nearest_centroid = np.argmin(distances)
+        mapped.append((nearest_centroid, point))
+    return mapped
+
+# REDUCE FUNCTION
+
+def reducer(mapped_data):
+    cluster_dict = defaultdict(list)
+
+    # Shuffle + Sort (group by key)
+    for key, point in mapped_data:
+        cluster_dict[key].append(point)
+
+    new_centroids = []
+    for key in sorted(cluster_dict.keys()):
+        new_centroids.append(np.mean(cluster_dict[key], axis=0))
+
+    return np.array(new_centroids)
+
+# Iterative MapReduce KMeans
+
+for iteration in range(max_iters):
+    print(f"Iteration {iteration+1}")
+
+    # MAP
+    mapped = mapper(data, centroids)
+
+    # REDUCE
+    new_centroids = reducer(mapped)
+
+    # Check convergence
+    shift = np.linalg.norm(new_centroids - centroids)
+    print("Centroid shift:", shift)
+
+    if shift < epsilon:
+        break
+
+    centroids = new_centroids
+
+print("\nFinal Centroids:")
+print(centroids)
+
+
