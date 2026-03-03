@@ -1,0 +1,438 @@
+#Aim: - Write a script to automate form filling, button clicking, and checkbox selection.
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+import time
+
+def run_practical_4():
+    driver = webdriver.Chrome()
+    driver.maximize_window()
+   
+    try:
+        print("Opening website...")
+        driver.get("https://testautomationpractice.blogspot.com/")
+       
+        print("Filling form...")
+        driver.find_element(By.ID, "name").send_keys("Student Name")
+        driver.find_element(By.ID, "email").send_keys("student@university.com")
+        driver.find_element(By.ID, "phone").send_keys("1234567890")
+       
+        print("Selecting checkboxes...")
+        checkbox = driver.find_element(By.ID, "sunday")
+        if not checkbox.is_selected():
+            checkbox.click()
+           
+        driver.find_element(By.ID, "male").click()
+       
+        print("Clicking button...")
+        print("Practical 4 executed successfully.")
+       
+        time.sleep(1)
+       
+    except Exception as e:
+        print(f"An error occurred: {e}")
+       
+    finally:
+        driver.quit()
+if __name__ == "__main__":
+    run_practical_4()
+
+
+
+
+#Aim:  Write a script to automate login and logout processes for a sample website.
+#installation command: 
+#pip install selenium webdriver-manager
+from selenium import webdriver 
+from selenium.webdriver.common.by import By 
+from selenium.webdriver.chrome.service import Service 
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+#STEP 1 — Launch Browser 
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+driver.maximize_window()
+# STEP 2 — Open Website 
+driver.get("https://practicetestautomation.com/practice-test-login/")
+time.sleep(2) 
+# STEP 3 — Enter Username and Password 
+driver.find_element(By.ID, "username").send_keys("student")
+driver.find_element(By.ID, "password").send_keys("Password123")
+time.sleep(1) 
+# STEP 4 — Click Login Button 
+driver.find_element(By.ID, "submit").click() 
+time.sleep(2) 
+# STEP 5 — Verify Login Success
+try: 
+ success_text = driver.find_element(By.TAG_NAME, "h1").text
+ if "Logged In Successfully" in success_text:
+     print("Login Successful!") 
+ else:
+     print("Login message not found.") 
+except:
+    print("Login failed!") 
+time.sleep(2) 
+# STEP 6 — Logout 
+try:
+    logout_button = driver.find_element(By.LINK_TEXT, "Log out")
+    logout_button.click() 
+    print("Logout Successful!") 
+except:
+    print("Logout button not found!") 
+time.sleep(2)
+# STEP 7 — Close Browser 
+driver.quit()
+
+
+
+#Aim:  Automate the handling of JavaScript alerts, confirmation boxes, and pop-ups.
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+# STEP 1 — Launch Browser
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+driver.maximize_window()
+# STEP 2 — Open Test Website
+driver.get("https://the-internet.herokuapp.com/javascript_alerts")
+time.sleep(2)
+# Handling Simple Alert
+print("\n---- SIMPLE ALERT ----")
+driver.find_element(By.XPATH, "//button[text()='Click for JS Alert']").click()
+time.sleep(2)
+alert = driver.switch_to.alert
+print("Alert text:", alert.text)
+alert.accept() # Click OK
+time.sleep(1)
+
+
+# Handling Confirmation Box
+print("\n---- CONFIRMATION ALERT ----")
+driver.find_element(By.XPATH, "//button[text()='Click for JS Confirm']").click()
+time.sleep(2)
+confirm = driver.switch_to.alert
+print("Confirmation text:", confirm.text)
+confirm.dismiss() # Click Cancel
+time.sleep(1)
+# Handling Prompt Pop-up
+print("\n---- PROMPT ALERT ----")
+driver.find_element(By.XPATH, "//button[text()='Click for JS Prompt']").click()
+time.sleep(2)
+prompt = driver.switch_to.alert
+print("Prompt text:", prompt.text)
+prompt.send_keys("Hello from Selenium!") # Enter text into prompt
+prompt.accept() # Click OK
+time.sleep(2)
+# CLOSE BROWSER
+driver.quit()
+
+
+
+
+#Aim: - Write a selenium script to switch between frames and multiple browser windows.
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+def selenium_switch_frames_and_windows(): 
+    driver = webdriver.Chrome() 
+    wait = WebDriverWait(driver, 10) 
+    try: 
+        driver.get("https://demoqa.com/browser-windows") 
+        original_window = driver.current_window_handle 
+        print("Main window:", original_window) 
+        
+        # Click button that opens a new tab 
+        wait.until(EC.element_to_be_clickable((By.ID, "tabButton"))).click() 
+        
+        # Wait for second window 
+        wait.until(EC.number_of_windows_to_be(2)) 
+        
+        # Switch to new window 
+        for handle in driver.window_handles: 
+            if handle != original_window: 
+                driver.switch_to.window(handle) 
+                break 
+        
+        print("Switched to new window:", driver.current_window_handle)
+        
+        # Read text from new window 
+        text = wait.until( 
+            EC.presence_of_element_located((By.ID, "sampleHeading"))
+        ).text 
+        print("New window text:", text) 
+        
+        driver.close() 
+        driver.switch_to.window(original_window) 
+        print("Back to original window") 
+        
+        driver.get("https://demoqa.com/frames")
+        print("Switching to iframe...") 
+        wait.until(EC.frame_to_be_available_and_switch_to_it("frame1")) 
+        
+        frame_text = wait.until( 
+            EC.presence_of_element_located((By.ID, "sampleHeading")) 
+        ).text 
+        print("Frame text:", frame_text) 
+        
+        driver.switch_to.default_content() 
+        print("Switched back to main page") 
+        
+        main_page_header = WebDriverWait(driver, 10).until( 
+            EC.presence_of_element_located((By.TAG_NAME, "h1"))
+        ).text 
+        print("Main page header:", main_page_header) 
+        
+        time.sleep(2) 
+    except Exception as e: 
+        print("An error occurred:", e) 
+    finally: 
+        driver.quit() 
+
+if __name__ == "__main__": 
+    selenium_switch_frames_and_windows()
+
+
+
+#Aim:-Automate the process of fetching and displaying data from a web table.
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+driver.maximize_window()
+driver.get("https://the-internet.herokuapp.com/tables")
+time.sleep(2)
+table = driver.find_element(By.ID, "table1")
+headers = table.find_elements(By.TAG_NAME, "th")
+header_text = [header.text for header in headers]
+print("TABLE HEADERS:")
+print(header_text)
+print("-" * 50)
+rows = table.find_elements(By.TAG_NAME, "tr")
+print("TABLE DATA:")
+for row in rows[1:]: 
+    cells = row.find_elements(By.TAG_NAME, "td")
+    row_data = [cell.text for cell in cells]
+    print(row_data)
+time.sleep(2)
+driver.quit()
+
+
+
+#Aim: - WRITE A SCRIPT TO SELECT AND VALIDATE CHECKBOXES AND RADIO BUTTONS
+#CODE: - RADIO BUTTONS 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+driver.maximize_window()
+wait = WebDriverWait(driver, 100)
+driver.get("https://demoqa.com/automation-practice-form")
+male_radio = wait.until(EC.presence_of_element_located((By.ID, "gender-radio-1")))
+female_radio = wait.until(EC.presence_of_element_located((By.ID, "gender-radio-2")))
+driver.execute_script("arguments[0].scrollIntoView(true);", male_radio)
+driver.execute_script("arguments[0].click();", male_radio)
+print("Male selected:", male_radio.is_selected())
+print("Female selected:", female_radio.is_selected())
+driver.quit()
+
+
+#CODE: - CHECKBOXE BUTTON 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+driver.get("https://the-internet.herokuapp.com/checkboxes")
+driver.maximize_window()
+wait = WebDriverWait(driver, 10)
+checkboxes = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//input[@type='checkbox']")))
+if not checkboxes[0].is_selected():
+    checkboxes[0].click()
+if checkboxes[0].is_selected():
+    checkboxes[0].click()
+print("Checkbox 1 selected:", checkboxes[0].is_selected())
+print("Checkbox 2 selected:", checkboxes[1].is_selected())
+driver.quit()
+
+
+#CODE: SELECT AND VALIDATE CHECKBOXES AND RADIO BUTTONS
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+driver.maximize_window()
+wait = WebDriverWait(driver, 10)
+driver.get("https://the-internet.herokuapp.com/checkboxes")
+checkboxes = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//input[@type='checkbox']")))
+if not checkboxes[0].is_selected():
+    checkboxes[0].click()
+if checkboxes[1].is_selected():
+    checkboxes[1].click()
+print("Checkbox 1 selected:", checkboxes[0].is_selected())
+print("Checkbox 2 selected:", checkboxes[1].is_selected())
+driver.get("https://www.techlistic.com/p/selenium-practice-form.html")
+male_radio = wait.until(EC.presence_of_element_located((By.ID, "sex-0")))
+female_radio = wait.until(EC.presence_of_element_located((By.ID, "sex-1")))
+driver.execute_script("arguments[0].scrollIntoView(true);", male_radio)
+driver.execute_script("arguments[0].click();", male_radio)
+print("Male radio selected:", male_radio.is_selected())
+print("Female radio selected:", female_radio.is_selected())
+driver.quit()
+
+
+
+#AIM:- write a scripts to capture screenshots of webpage during test execution
+import os
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+
+
+base_dir = os.getcwd()
+
+screenshot_dir = os.path.join(base_dir, "screenshots")
+
+if not os.path.exists(screenshot_dir):
+    os.makedirs(screenshot_dir)
+
+print("Screenshots will be saved in:", screenshot_dir)
+
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+driver.maximize_window()
+driver.get("https://the-internet.herokuapp.com")
+
+driver.save_screenshot(os.path.join(screenshot_dir, "page_loaded.png"))
+
+wait = WebDriverWait(driver, 10)
+
+checkbox_link = wait.until(
+    EC.element_to_be_clickable((By.LINK_TEXT, "Checkboxes"))
+)
+checkbox_link.click()
+
+driver.save_screenshot(os.path.join(screenshot_dir, "after_click.png"))
+
+checkbox = wait.until(
+    EC.presence_of_element_located((By.XPATH, "//input[@type='checkbox']"))
+)
+checkbox.click()
+
+driver.save_screenshot(os.path.join(screenshot_dir, "checkbox_selected.png"))
+
+time.sleep(2)
+driver.quit()
+
+
+#AIM: Use Actions class to perform hover, double-click, and keyboard actions.
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+
+# ---------------- Setup WebDriver ----------------
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+driver.maximize_window()
+wait = WebDriverWait(driver, 15)
+
+# Create Actions object
+actions = ActionChains(driver)
+
+# ---------------- Mouse Hover Action ----------------
+driver.get("https://demoqa.com/tool-tips")
+hover_button = wait.until(EC.presence_of_element_located((By.ID, "toolTipButton")))
+actions.move_to_element(hover_button).perform()
+print("Hovered over the button")
+
+# ---------------- Double Click Action ----------------
+driver.get("https://demoqa.com/buttons")
+double_click_btn = wait.until(EC.presence_of_element_located((By.ID, "doubleClickBtn")))
+actions.double_click(double_click_btn).perform()
+print("Double-clicked the button")
+
+# ---------------- Right Click (Context Click) ----------------
+right_click_btn = wait.until(EC.presence_of_element_located((By.ID, "rightClickBtn")))
+actions.context_click(right_click_btn).perform()
+print("Right-clicked the button")
+
+# ---------------- Keyboard Actions ----------------
+driver.get("https://demoqa.com/text-box")
+name_input = wait.until(EC.presence_of_element_located((By.ID, "userName")))
+email_input = wait.until(EC.presence_of_element_located((By.ID, "userEmail")))
+
+# Type name using Actions
+actions.click(name_input).send_keys("Yash Ghadge").perform()
+print("Typed name using keyboard")
+
+# Simulate CTRL + A (select all) and CTRL + C (copy)
+actions.click(name_input).key_down(Keys.CONTROL).send_keys('a').send_keys('c').key_up(Keys.CONTROL).perform()
+print("Selected and copied text")
+
+# Paste into email field using send_keys (reliable)
+actions.click(email_input).send_keys("yashghadge@gmail.com").perform()
+print("Typed email using keyboard actions")
+
+# ---------------- Finish ----------------
+input("Press Enter to close browser...")
+driver.quit()
+driver.quit()
+
+
+#Aim: Write a complete test case (e.g., searching for a product on an e-commerce site and verifying search results).
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+options = webdriver.ChromeOptions()
+options.add_argument("--start-maximized")
+options.add_argument("--disable-blink-features=AutomationControlled")
+service = Service(ChromeDriverManager().install())
+driver = webdriver.Chrome(service=service, options=options)
+driver.get("https://www.amazon.in")
+wait = WebDriverWait(driver, 20)
+search_box = wait.until(
+    EC.visibility_of_element_located((By.ID, "twotabsearchtextbox"))
+)
+search_box.send_keys("Wireless Mouse")
+search_box.send_keys(Keys.RETURN)
+# wait for search results
+wait.until(
+    EC.presence_of_element_located(
+        (By.CSS_SELECTOR, "div[data-component-type='s-search-result']")
+    )
+)
+# scroll to load products
+driver.execute_script("window.scrollBy(0, 1000);")
+time.sleep(2)
+products = driver.find_elements(
+    By.CSS_SELECTOR, "div[data-component-type='s-search-result']"
+)
+print(f"Products found: {len(products)}")
+assert len(products) > 0, "No products found"
+driver.quit()
+
