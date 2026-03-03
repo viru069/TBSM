@@ -1,0 +1,680 @@
+Aim: - Demonstrate the use of Deep Feed-forward Network.
+Code: -
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.datasets import load_iris
+import matplotlib.pyplot as plt
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.utils import to_categorical
+
+
+# Load dataset
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+
+# Split into train &amp; test
+X_train, X_test, y_train, y_test = train_test_split(
+X, y, test_size=0.2, random_state=42
+)
+
+# Scale features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+
+# One-hot encode labels
+y_train_onehot = to_categorical(y_train)
+y_test_onehot = to_categorical(y_test)
+
+model = Sequential()
+model.add(Dense(16, activation='relu', input_shape=(4,)))
+model.add(Dense(32, activation='relu'))
+model.add(Dense(16, activation='relu'))
+model.add(Dense(3, activation='softmax'))
+model.summary()
+model.compile(
+optimizer='adam',
+
+loss='categorical_crossentropy',
+metrics=['accuracy']
+)
+history = model.fit(
+X_train, y_train_onehot,
+epochs=20,
+batch_size=8,
+validation_split=0.1,
+verbose=1
+)
+plt.figure(figsize=(14,5))
+# Accuracy
+plt.subplot(1,2,1)
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('Training vs Validation Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend(['Train', 'Validation'])
+# Loss
+plt.subplot(1,2,2)
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('Training vs Validation Loss')
+
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend(['Train', 'Validation'])
+
+plt.show()
+loss, accuracy = model.evaluate(X_test, y_test_onehot)
+print("Test Accuracy", accuracy)
+
+sample = np.array([[5.5, 2.4, 3.7, 1.0]])
+sample_scaled = scaler.transform(sample)
+
+prediction = model.predict(sample_scaled)
+predicted_class = np.argmax(prediction)
+
+print("Predicted class:", predicted_class)
+print("Flower type:", iris.target_names[predicted_class])
+
+
+
+
+Aim: - Object Detection using Autoencoder
+Code: -
+!pip install tensorflow numpy matplotlib opencv-python pillow
+#Import libraries
+import tensorflow as tf
+from tensorflow.keras import layers, models
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2
+#Load sample dataset (MNIST for demo)
+(x_train, _), (x_test, _) = tf.keras.datasets.mnist.load_data()
+
+# Normalize
+x_train = x_train / 255.
+x_test = x_test / 255.
+
+# Add channel dimension
+x_train = x_train.reshape((-1, 28, 28, 1))
+x_test = x_test.reshape((-1, 28, 28, 1))
+
+#Build Autoencoder Model
+input_img = layers.Input(shape=(28, 28, 1))
+x = layers.Conv2D(32, (3,3), activation='relu', padding='same')(input_img)
+x = layers.MaxPooling2D((2,2), padding='same')(x)
+x = layers.Conv2D(16, (3,3), activation='relu', padding='same')(x)
+encoded = layers.MaxPooling2D((2,2), padding='same')(x)
+# Decoder
+x = layers.Conv2D(16, (3,3), activation='relu', padding='same')(encoded)
+x = layers.UpSampling2D((2,2))(x)
+x = layers.Conv2D(32, (3,3), activation='relu', padding='same')(x)
+x = layers.UpSampling2D((2,2))(x)
+decoded = layers.Conv2D(1, (3,3), activation='sigmoid', padding='same')(x)
+autoencoder = models.Model(input_img, decoded)
+autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+autoencoder.summary()
+#Train the Autoencoder
+history = autoencoder.fit(
+    x_train, x_train,
+    epochs=10,
+    batch_size=128,
+    shuffle=True,
+    validation_data=(x_test, x_test)
+)
+#Reconstruct Test Image
+sample = x_test[0]
+sample_input = sample.reshape(1, 28, 28, 1)
+reconstructed = autoencoder.predict(sample_input)
+#Show Original vs. Reconstructed
+plt.figure(figsize=(6,3))
+plt.subplot(1,2,1)
+plt.imshow(sample.reshape(28,28), cmap='gray')
+plt.axis('off')
+
+plt.subplot(1,2,2)
+plt.imshow(reconstructed.reshape(28,28), cmap='gray')
+plt.axis('off')
+plt.show()
+
+#Compute Difference (Object Detection Map)
+diff = np.abs(sample - reconstructed.reshape(28,28,1))
+
+plt.imshow(diff.reshape(28,28), cmap='hot')
+plt.axis('off')
+plt.show()
+
+#Thresholding to Identify Object
+threshold = 0.3
+mask = diff > threshold
+
+plt.imshow(mask.reshape(28,28), cmap='gray')
+plt.axis('off')
+plt.show()
+
+Aim: - Implement the concept of Deep-belief Neural Network
+Code: -
+# Install (run this in terminal or notebook cell, NOT inside the script)
+pip install numpy matplotlib scikit-learn
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.neural_network import BernoulliRBM
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.datasets import fetch_openml
+from sklearn.model_selection import train_test_split
+ 
+# Load MNIST dataset (ensure NumPy arrays, not pandas)
+X, y = fetch_openml(
+	'mnist_784',
+	version=1,
+    return_X_y=True,
+    as_frame=False
+)
+ 
+# Normalize data
+X = X.astype(np.float32) / 255.0
+y = y.astype(int)
+ 
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(
+	X, y, test_size=0.2, random_state=42
+)
+ 
+# RBM layers
+rbm1 = BernoulliRBM(
+    n_components=256,
+    learning_rate=0.01,
+	n_iter=10,
+    random_state=0,
+	verbose=True
+)
+ 
+rbm2 = BernoulliRBM(
+    n_components=128,
+    learning_rate=0.01,
+	n_iter=10,
+    random_state=0,
+	verbose=True
+)
+ 
+# Classifier
+classifier = LogisticRegression(
+    max_iter=1000,
+    solver="lbfgs",
+    multi_class="auto",
+	n_jobs=-1
+)
+ 
+# Deep Belief Network (stacked RBMs + classifier)
+dbn = Pipeline(steps=[
+	('rbm1', rbm1),
+	('rbm2', rbm2),
+	('logistic', classifier)
+])
+ 
+# Train
+dbn.fit(X_train, y_train)
+ 
+# Evaluate
+accuracy = dbn.score(X_test, y_test)
+print("DBN Test Accuracy:", accuracy)
+ 
+# Visualize learned features from first RBM
+plt.figure(figsize=(8, 8))
+for i, comp in enumerate(rbm1.components_[:16]):
+    plt.subplot(4, 4, i + 1)
+    plt.imshow(comp.reshape((28, 28)), cmap='gray')
+    plt.axis('off')
+ 
+plt.suptitle("RBM Layer-1 Learned Features")
+plt.show()
+
+Aim: - Write Python scripts to implement basic operations and TensorFlow 2 tensors
+!pip install tensorflow
+import tensorflow as tf
+ 
+# Creating constant tensors
+a = tf.constant([[1, 2], [3, 4]])
+b = tf.constant([[5, 6], [7, 8]])
+print("Tensor a:")
+print(a)
+ 
+print("\nTensor b:")
+print(b)
+ 
+# Addition
+add_result = tf.add(a, b)
+print("Addition:\n", add_result)
+ 
+# Subtraction
+sub_result = tf.subtract(a, b)
+print("\nSubtraction:\n", sub_result)
+ 
+# Multiplication (element-wise)
+mul_result = tf.multiply(a, b)
+print("\nElement-wise Multiplication:\n", mul_result)
+ 
+# Matrix multiplication
+matmul_result = tf.matmul(a, b)
+print("\nMatrix Multiplication:\n", matmul_result)
+ 
+ 
+ 
+# Scalar multiplication
+scalar_mul = a * 10
+print("\nScalar Multiplication:\n", scalar_mul)
+ 
+ 
+# Create a 1D Tensor
+x = tf.constant([1, 2, 3, 4, 5, 6])
+# Reshape to 2 × 3 matrix
+x_reshaped = tf.reshape(x, (2, 3))
+print("Reshaped Tensor (2x3):\n", x_reshaped)
+ 
+tensor = tf.constant([[10, 20, 30],
+ [40, 50, 60],
+ [70, 80, 90]])
+print("Original Tensor:\n", tensor)
+ 
+# Slice: first two rows and first two columns
+slice_result = tensor[:2, :2]
+print("\nSliced Tensor:\n", slice_result)
+ 
+# Single element indexing
+print("\nElement at (1,1):", tensor[1, 1].numpy())
+y = tf.constant([1, 2, 3], dtype=tf.int32)
+print("Original dtype:", y.dtype)
+ 
+# Cast to float32
+y_float = tf.cast(y, dtype=tf.float32)
+print("After casting:", y_float, "dtype:", y_float.dtype)
+ 
+# Creating trainable variables
+var = tf.Variable([[2.0, 3.0]])
+print("Variable:\n", var)
+ # Assigning new values
+var.assign([[5.0, 6.0]])
+print("\nAfter assign():\n", var)
+Aim: - Implement Convolution Neural Network.
+Code: -
+import tensorflow as tf
+from tensorflow.keras import datasets, layers, models
+import matplotlib.pyplot as plt
+# Load dataset
+(X_train, y_train), (X_test, y_test) = datasets.cifar10.load_data()
+ 
+# Normalize (scale values between 0 and 1)
+X_train = X_train / 255.0
+X_test = X_test / 255.0
+ 
+# Flatten labels, example: [[5]] → [5]
+y_train = y_train.reshape(-1,)
+y_test = y_test.reshape(-1,)
+ 
+plt.figure(figsize=(10, 4))
+for i in range(10):
+    plt.subplot(2, 5, i+1)
+    plt.imshow(X_train[i])
+    plt.axis('off')
+plt.show()
+ 
+ 
+model = models.Sequential([
+    
+    # First Convolution Block
+    layers.Conv2D(32, (3,3), activation='relu', input_shape=(32, 32, 3)),
+    layers.MaxPooling2D((2,2)),
+    
+    # Second Convolution Block
+    layers.Conv2D(64, (3,3), activation='relu'),
+    layers.MaxPooling2D((2,2)),
+    
+    # Third Convolution Block
+    layers.Conv2D(64, (3,3), activation='relu'),
+    
+    # Flatten + Dense Layers
+    layers.Flatten(),
+    layers.Dense(64, activation='relu'),
+    layers.Dense(10, activation='softmax')
+])
+ 
+  model.summary()
+ 
+model.compile(
+    optimizer='adam',
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+history = model.fit(
+    X_train, y_train,
+    epochs=10,
+    validation_data=(X_test, y_test)
+)
+ 
+ 
+test_loss, test_acc = model.evaluate(X_test, y_test)
+print("Test Accuracy:", test_acc)
+ 
+plt.figure(figsize=(12,4))
+ 
+ 
+# Accuracy plot
+plt.subplot(1,2,1)
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Val Accuracy')
+plt.legend()
+ 
+ 
+# Loss plot
+plt.subplot(1,2,2)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Val Loss')
+plt.legend()
+ 
+ 
+ 
+plt.show()
+import numpy as np
+ 
+index = 0   # change index to test another image
+img = X_test[index]
+plt.imshow(img)
+plt.axis('off')
+ 
+pred = model.predict(img.reshape(1,32,32,3))
+print("Predicted class:", np.argmax(pred))
+print("Actual class:", y_test[index])
+
+Aim : - Implement a Generative Adeversarial Network (GAN) architechture using Tensorflow 2. Train the GAN model on a dataset such as MNIST or CIFAR-10 for image generation tasks
+ 
+Code: -
+import tensorflow as tf
+from tensorflow.keras import layers
+import numpy as np
+import matplotlib.pyplot as plt
+
+(x_train, _), (_, _) = tf.keras.datasets.mnist.load_data()
+
+x_train = (x_train.astype("float32") - 127.5) / 127.5
+x_train = np.expand_dims(x_train, axis=-1)
+
+def build_generator():
+    model = tf.keras.Sequential([
+        layers.Dense(128, activation="relu", input_shape=(100,)),
+        layers.Dense(256, activation="relu"),
+        layers.Dense(28*28, activation="tanh"),
+        layers.Reshape((28, 28, 1))
+    ])
+    return model
+
+generator = build_generator()
+generator.summary()
+
+def build_discriminator():
+    model = tf.keras.Sequential([
+        layers.Flatten(input_shape=(28, 28, 1)),
+        layers.Dense(256, activation="relu"),
+        layers.Dense(1, activation="sigmoid")
+    ])
+    return model
+
+discriminator = build_discriminator()
+discriminator.summary()
+
+discriminator.compile(
+    optimizer="adam",
+    loss="binary_crossentropy",
+    metrics=["accuracy"]
+)
+
+discriminator.trainable = False
+
+gan_input = layers.Input(shape=(100,))
+fake_image = generator(gan_input)
+gan_output = discriminator(fake_image)
+
+gan = tf.keras.Model(gan_input, gan_output)
+gan.compile(optimizer="adam", loss="binary_crossentropy")
+
+def train_gan(epochs=3000, batch_size=64):
+    for epoch in range(epochs):
+
+        real_images = x_train[np.random.randint(0, x_train.shape[0], batch_size)]
+
+        noise = np.random.normal(0, 1, (batch_size, 100))
+        fake_images = generator.predict(noise, verbose=0)
+
+        d_loss_real = discriminator.train_on_batch(
+            real_images, np.ones((batch_size, 1))
+        )
+
+        d_loss_fake = discriminator.train_on_batch(
+            fake_images, np.zeros((batch_size, 1))
+        )
+
+        noise = np.random.normal(0, 1, (batch_size, 100))
+        g_loss = gan.train_on_batch(
+            noise, np.ones((batch_size, 1))
+        )
+
+        if epoch % 500 == 0:
+            print(f"Epoch {epoch} | D Loss: {d_loss_real[0]} | G Loss: {g_loss}")
+
+    show_generated_images()
+
+def show_generated_images():
+    noise = np.random.normal(0, 1, (9, 100))
+    generated_images = generator.predict(noise, verbose=0)
+
+    plt.figure(figsize=(5, 5))
+    for i in range(9):
+        plt.subplot(3, 3, i + 1)
+        plt.imshow(generated_images[i, :, :, 0], cmap="gray")
+        plt.axis("off")
+
+    plt.show()
+
+train_gan(epochs=3000, batch_size=64)
+
+
+
+
+Aim : Implement a Long Short-Term Memory (LSTM) network using tensorFlow 2 for text  generation tasks. Train the LSTM model on a dataset of text sequences and generate  new text samples
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Embedding
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+# Sample text (e.g., Shakespeare)
+text = """Shall I compare thee to a summer's day? Thou art more lovely and more temperate. 
+Rough winds do shake the darling buds of May, And summer's lease hath all too short a date."""
+
+# Tokenize the text
+tokenizer = Tokenizer()
+tokenizer.fit_on_texts([text])
+total_words = len(tokenizer.word_index) + 1
+
+# Create sequences for text generation
+input_sequences = []
+
+for line in text.split('.'):
+    token_list = tokenizer.texts_to_sequences([line])[0]
+    for i in range(1, len(token_list)):
+        n_gram_sequence = token_list[:i+1]
+        input_sequences.append(n_gram_sequence)
+
+# Pad sequences
+max_sequence_len = max([len(x) for x in input_sequences])
+
+input_sequences = np.array(
+    pad_sequences(input_sequences, maxlen=max_sequence_len, padding='pre')
+)
+
+# Split sequences into input (X) and output (y)
+X, y = input_sequences[:, :-1], input_sequences[:, -1]
+y = tf.keras.utils.to_categorical(y, num_classes=total_words)
+
+# Build LSTM model for text generation
+model_textgen_lstm = Sequential()
+model_textgen_lstm.add(Embedding(total_words, 64, input_length=max_sequence_len-1))
+model_textgen_lstm.add(LSTM(100))
+model_textgen_lstm.add(Dense(total_words, activation='softmax'))
+
+# Compile model
+model_textgen_lstm.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# Train the model
+model_textgen_lstm.fit(X, y, epochs=100, verbose=1)
+
+# Generate new text
+def generate_text(seed_text, next_words, max_sequence_len):
+    for _ in range(next_words):
+        token_list = tokenizer.texts_to_sequences([seed_text])[0]
+        token_list = pad_sequences(
+            [token_list],
+            maxlen=max_sequence_len-1,
+            padding='pre'
+        )
+
+        predicted = np.argmax(
+            model_textgen_lstm.predict(token_list),
+            axis=-1
+        )
+
+        output_word = ""
+
+        for word, index in tokenizer.word_index.items():
+            if index == predicted:
+                output_word = word
+                break
+
+        seed_text += " " + output_word
+
+    return seed_text
+
+# Example text generation
+print(generate_text("Shall I compare thee", 5, max_sequence_len))
+
+Aim: - Music Generation: Implement a Long Short-Term Memory (LSTM) network using TensorFlow 2 for music generation. Train the LSTM model on a dataset of music sequences and generate new musical compositions.
+Code: -
+!pip install tensorflow music21 numpy
+import glob
+from music21 import converter
+from music21 import instrument
+from music21 import note
+from music21 import chord
+import numpy as np
+import tensorflow as tf
+from music21 import stream
+midi_files = glob.glob(r"C:\Users\ckt\Desktop\Music\America_-_Sister_Golden_Hair.mid")
+ 
+notes = []
+for file in midi_files:
+	midi = converter.parse(file)
+	parts = instrument.partitionByInstrument(midi)
+	if parts:  # instrument parts exist
+    	elements = parts.parts[0].recurse()
+	else:
+    	elements = midi.flat.notes
+	for element in elements:
+    	if isinstance(element, note.Note):
+            notes.append(str(element.pitch))
+    	elif isinstance(element, chord.Chord):
+            notes.append('.'.join(str(n) for n in element.normalOrder))
+print("Total notes:", len(notes))
+ 
+sequence_length = 100
+# Unique notes
+pitchnames = sorted(set(notes))
+n_vocab = len(pitchnames)
+note_to_int = {note: number for number, note in enumerate(pitchnames)}
+network_input = []
+network_output = []
+for i in range(len(notes) - sequence_length):
+	seq_in = notes[i:i + sequence_length]
+	seq_out = notes[i + sequence_length]
+    network_input.append([note_to_int[n] for n in seq_in])
+	network_output.append(note_to_int[seq_out])
+n_patterns = len(network_input)
+print("Patterns:", n_patterns)
+# Reshape & normalize
+X = np.reshape(network_input, (n_patterns, sequence_length, 1))
+X = X / float(n_vocab)
+y = tf.keras.utils.to_categorical(network_output)
+ 
+model = tf.keras.Sequential([
+	tf.keras.layers.LSTM(512, input_shape=(X.shape[1], X.shape[2]), return_sequences=True),
+	tf.keras.layers.Dropout(0.3),
+	tf.keras.layers.LSTM(512),
+	tf.keras.layers.Dense(256, activation='relu'),
+	tf.keras.layers.Dropout(0.3),
+	tf.keras.layers.Dense(n_vocab, activation='softmax')
+])
+model.compile(
+    loss='categorical_crossentropy',
+	optimizer='adam'
+)
+model.summary()
+ 
+checkpoint = tf.keras.callbacks.ModelCheckpoint(
+	"music_lstm.h5",
+	monitor='loss',
+	save_best_only=True
+)
+model.fit(
+	X, y,
+	epochs=50,
+	batch_size=64,
+	callbacks=[checkpoint]
+)
+ 
+model.load_weights("music_lstm.h5")
+start = np.random.randint(0, len(network_input)-1)
+pattern = network_input[start]
+int_to_note = {number: note for number, note in enumerate(pitchnames)}
+generated_notes = []
+for i in range(500):
+	input_seq = np.reshape(pattern, (1, len(pattern), 1))
+	input_seq = input_seq / float(n_vocab)
+	prediction = model.predict(input_seq, verbose=0)
+	index = np.argmax(prediction)
+	result = int_to_note[index]
+    generated_notes.append(result)
+	pattern.append(index)
+	pattern = pattern[1:]
+output_notes = []
+offset = 0
+for pattern in generated_notes:
+	if '.' in pattern:
+    	notes_in_chord = pattern.split('.')
+    	chord_notes = []
+    	for n in notes_in_chord:
+        	new_note = note.Note(int(n))
+            new_note.storedInstrument = instrument.Piano()
+        	chord_notes.append(new_note)
+    	new_chord = chord.Chord(chord_notes)
+    	new_chord.offset = offset
+   	 output_notes.append(new_chord)
+	else:
+    	new_note = note.Note(pattern)
+    	new_note.offset = offset
+    	new_note.storedInstrument = instrument.Piano()
+  	  output_notes.append(new_note)
+	offset += 0.5
+midi_stream = stream.Stream(output_notes)
+midi_stream.write('midi', fp='generated_music.mid')
+
