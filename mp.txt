@@ -1,4 +1,4 @@
-Aim: - MapReduce wordcount 
+Aim: - MapReduce wordcount
 pip install mrjob
 
 %%writefile wordcount.py
@@ -294,5 +294,10 @@ for iteration in range(max_iters):
 
 print("\nFinal Centroids:")
 print(centroids)
+
+db.FirstTab.deleteMany({Name:{$in:["A","B"]}})
+
+
+
 
 
