@@ -723,8 +723,6 @@ for pattern in generated_notes:
 
 midi_stream = stream.Stream(output_notes)
 midi_stream.write('midi', fp='generated_music.mid')
-	offset += 0.5
-midi_stream = stream.Stream(output_notes)
-midi_stream.write('midi', fp='generated_music.mid')
+
 
 
