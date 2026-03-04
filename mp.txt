@@ -303,6 +303,20 @@ db.employee.aggregate([{ $group : { _id: “$DEPARTMENT_ID”}}])
 db.employee.aggregate( [ {$match : {DEPARTMENT_ID: 50} }, { $count :  “Total employees in department: 50” }])
 
 
+use CompanyDB1
+db.createCollection("Employees1")
+db.Employees1.insertMany([
+{EmpId:1, Name:"Yash", Gender:"Male", Salary:50000, Dept:"IT"},
+{EmpId:2, Name:"Rahul", Gender:"Male", Salary:45000, Dept:"HR"},
+{EmpId:3, Name:"Sneha", Gender:"Female", Salary:55000, Dept:"Finance"},
+{EmpId:4, Name:"Amit", Gender:"Male", Salary:60000, Dept:"IT"},
+{EmpId:5, Name:"Neha", Gender:"Female", Salary:48000, Dept:"HR"},
+{EmpId:6, Name:"Rohan", Gender:"Male", Salary:52000, Dept:"Sales"},
+{EmpId:7, Name:"Priya", Gender:"Female", Salary:58000, Dept:"Finance"},
+{EmpId:8, Name:"Karan", Gender:"Male", Salary:47000, Dept:"Sales"},
+{EmpId:9, Name:"Anita", Gender:"Female", Salary:62000, Dept:"IT"},
+{EmpId:10, Name:"Vikram", Gender:"Male", Salary:51000, Dept:"HR"}
+])
 
 
 
