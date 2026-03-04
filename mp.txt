@@ -298,6 +298,10 @@ print("\nFinal Centroids:")
 print(centroids)
 
 db.FirstTab.deleteMany({Name:{$in:["A","B"]}})
+db.employee.aggregate({[$match: {DEPARTMENT_ID: 50}}])
+db.employee.aggregate([{ $group : { _id: “$DEPARTMENT_ID”}}])
+db.employee.aggregate( [ {$match : {DEPARTMENT_ID: 50} }, { $count :  “Total employees in department: 50” }])
+
 
 
 
