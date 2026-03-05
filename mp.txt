@@ -297,26 +297,49 @@ for iteration in range(max_iters):
 print("\nFinal Centroids:")
 print(centroids)
 
-db.FirstTab.deleteMany({Name:{$in:["A","B"]}})
-db.employee.aggregate({[$match: {DEPARTMENT_ID: 50}}])
-db.employee.aggregate([{ $group : { _id: “$DEPARTMENT_ID”}}])
-db.employee.aggregate( [ {$match : {DEPARTMENT_ID: 50} }, { $count :  “Total employees in department: 50” }])
-
-
-use CompanyDB1
-db.createCollection("Employees1")
-db.Employees1.insertMany([
-{EmpId:1, Name:"Yash", Gender:"Male", Salary:50000, Dept:"IT"},
-{EmpId:2, Name:"Rahul", Gender:"Male", Salary:45000, Dept:"HR"},
-{EmpId:3, Name:"Sneha", Gender:"Female", Salary:55000, Dept:"Finance"},
-{EmpId:4, Name:"Amit", Gender:"Male", Salary:60000, Dept:"IT"},
-{EmpId:5, Name:"Neha", Gender:"Female", Salary:48000, Dept:"HR"},
-{EmpId:6, Name:"Rohan", Gender:"Male", Salary:52000, Dept:"Sales"},
-{EmpId:7, Name:"Priya", Gender:"Female", Salary:58000, Dept:"Finance"},
-{EmpId:8, Name:"Karan", Gender:"Male", Salary:47000, Dept:"Sales"},
-{EmpId:9, Name:"Anita", Gender:"Female", Salary:62000, Dept:"IT"},
-{EmpId:10, Name:"Vikram", Gender:"Male", Salary:51000, Dept:"HR"}
+Practical 6:
+#Create Collection + Insert Records (10 records)
+db.employee.insertMany([
+{emp_id:1,name:"Amit",gender:"Male",salary:50000,dept:50},
+{emp_id:2,name:"Sara",gender:"Female",salary:60000,dept:40},
+{emp_id:3,name:"Raj",gender:"Male",salary:45000,dept:50},
+{emp_id:4,name:"Neha",gender:"Female",salary:70000,dept:30},
+{emp_id:5,name:"John",gender:"Male",salary:55000,dept:40},
+{emp_id:6,name:"Priya",gender:"Female",salary:48000,dept:50},
+{emp_id:7,name:"David",gender:"Male",salary:62000,dept:30},
+{emp_id:8,name:"Anita",gender:"Female",salary:53000,dept:40},
+{emp_id:9,name:"Karan",gender:"Male",salary:75000,dept:50},
+{emp_id:10,name:"Pooja",gender:"Female",salary:68000,dept:30}
 ])
+
+#Count
+
+db.employee.countDocuments()
+#Sort Ascending
+db.employee.find().sort({salary:1})
+#Sort Descending
+db.employee.find().sort({salary:-1})
+#Limit
+db.employee.find().limit(5)
+#Skip
+db.employee.find().skip(5)
+#Skip + Limit
+db.employee.find().skip(5).limit(5)
+#Aggregate Match
+db.employee.aggregate([
+{$match:{dept:50}}
+])
+#Aggregate Group
+db.employee.aggregate([
+{$group:{_id:"$dept"}}
+])
+#Aggregate Count
+db.employee.aggregate([
+{$match:{dept:50}},
+{$count:"Total employees in department 50"}
+])
+
+
 
 
 
