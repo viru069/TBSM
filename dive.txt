@@ -724,5 +724,13 @@ for pattern in generated_notes:
 midi_stream = stream.Stream(output_notes)
 midi_stream.write('midi', fp='generated_music.mid')
 
+<html>
+<body style="background-color:skyblue; text-align:center">
+    <h1>Welcome to My Cloud Website!</h1>
+    <p>Hosted on AWS S3 by a TYBSc CS Student.</p>
+</body>
+</html>
+
+
 
 
