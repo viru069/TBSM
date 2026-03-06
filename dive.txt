@@ -731,6 +731,13 @@ midi_stream.write('midi', fp='generated_music.mid')
 </body>
 </html>
 
+apk update
+apk add docker
+rc-update add docker boot
+service docker start
+docker run hello-world
+
+
 
 
 
